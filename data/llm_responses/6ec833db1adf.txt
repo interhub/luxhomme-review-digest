@@ -1,0 +1,1 @@
+{"results":[{"id":"23dbc354","themes":[{"theme":"software","sentiment":"neg"}],"other_label":null,"confidence":0.95},{"id":"73970ea8","themes":[{"theme":"noise","sentiment":"neg"}],"other_label":null,"confidence":0.8},{"id":"9474c516","themes":[{"theme":"other","sentiment":"neu"}],"other_label":"реклама телеграм канала","confidence":0.9}]}

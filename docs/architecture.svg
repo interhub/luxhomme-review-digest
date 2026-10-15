@@ -1,0 +1,87 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1400" height="800" viewBox="0 0 1400 800" font-family="Arial, Helvetica, sans-serif">
+<rect width="1400" height="800" fill="#f5f2ed"/>
+<defs><marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#2f3b45"/></marker></defs>
+<text x="40" y="52" font-size="28" font-weight="bold" fill="#1f2933" text-anchor="start">Luxhommè: недельная сводка по отзывам покупателей</text>
+<text x="40" y="80" font-size="16" font-weight="normal" fill="#5b6770" text-anchor="start">Откуда берутся отзывы, как попадают на разбор, где хранится результат и как сводка доходит до команды</text>
+<rect x="40" y="108" width="1320" height="46" rx="10" fill="#fff" stroke="#c9c2b6" stroke-width="2" stroke-dasharray="7 6"/>
+<text x="60" y="138" font-size="16.5" font-weight="bold" fill="#1f2933" text-anchor="start">Запуск по расписанию: GitHub Actions, каждый понедельник 06:00 UTC (можно n8n или cron). Команда: review_digest run --send</text>
+<rect x="40" y="200" width="226" height="250" rx="14" fill="#e8f0fb" stroke="#4a78c2" stroke-width="2"/>
+<circle cx="66" cy="228" r="15" fill="#4a78c2"/>
+<text x="66" y="234" font-size="16" font-weight="bold" fill="#fff" text-anchor="middle">1</text>
+<text x="90" y="234" font-size="19" font-weight="bold" fill="#1f2933" text-anchor="start">Источники</text>
+<text x="58" y="266" font-size="15.5" font-weight="normal" fill="#1f2933" text-anchor="start">CSV из задания</text>
+<text x="58" y="290" font-size="15.5" font-weight="normal" fill="#1f2933" text-anchor="start">Wildberries API</text>
+<text x="58" y="314" font-size="15.5" font-weight="normal" fill="#5b6770" text-anchor="start">(Ozon и Я.Маркет:</text>
+<text x="58" y="338" font-size="15.5" font-weight="normal" fill="#1f2933" text-anchor="start">тот же интерфейс)</text>
+<text x="58" y="362" font-size="15.5" font-weight="normal" fill="#1f2933" text-anchor="start"></text>
+<text x="58" y="386" font-size="15.5" font-weight="normal" fill="#1f2933" text-anchor="start">Берём: дата, артикул,</text>
+<text x="58" y="410" font-size="15.5" font-weight="normal" fill="#1f2933" text-anchor="start">оценка, текст</text>
+<rect x="318" y="200" width="226" height="250" rx="14" fill="#e8f0fb" stroke="#4a78c2" stroke-width="2"/>
+<circle cx="344" cy="228" r="15" fill="#4a78c2"/>
+<text x="344" y="234" font-size="16" font-weight="bold" fill="#fff" text-anchor="middle">2</text>
+<text x="368" y="234" font-size="19" font-weight="bold" fill="#1f2933" text-anchor="start">Загрузка</text>
+<text x="336" y="266" font-size="15.5" font-weight="normal" fill="#1f2933" text-anchor="start">Проверка строк:</text>
+<text x="336" y="290" font-size="15.5" font-weight="normal" fill="#1f2933" text-anchor="start">дата, оценка 1-5, текст</text>
+<text x="336" y="314" font-size="15.5" font-weight="normal" fill="#1f2933" text-anchor="start">Битые строки не</text>
+<text x="336" y="338" font-size="15.5" font-weight="normal" fill="#1f2933" text-anchor="start">пропадают молча,</text>
+<text x="336" y="362" font-size="15.5" font-weight="normal" fill="#1f2933" text-anchor="start">а попадают в отчёт</text>
+<text x="336" y="386" font-size="15.5" font-weight="normal" fill="#1f2933" text-anchor="start">Дубли отсекаются по</text>
+<text x="336" y="410" font-size="15.5" font-weight="normal" fill="#1f2933" text-anchor="start">id (хеш строки)</text>
+<rect x="596" y="200" width="226" height="250" rx="14" fill="#fdeede" stroke="#d98a2b" stroke-width="2"/>
+<circle cx="622" cy="228" r="15" fill="#d98a2b"/>
+<text x="622" y="234" font-size="16" font-weight="bold" fill="#fff" text-anchor="middle">3</text>
+<text x="646" y="234" font-size="19" font-weight="bold" fill="#1f2933" text-anchor="start">Разбор моделью</text>
+<text x="614" y="266" font-size="15.5" font-weight="normal" fill="#1f2933" text-anchor="start">Пачки по 15 отзывов,</text>
+<text x="614" y="290" font-size="15.5" font-weight="normal" fill="#1f2933" text-anchor="start">один промпт в репозитории</text>
+<text x="614" y="314" font-size="15.5" font-weight="normal" fill="#1f2933" text-anchor="start">Ответ: темы + тональность</text>
+<text x="614" y="338" font-size="15.5" font-weight="normal" fill="#1f2933" text-anchor="start">по каждой + уверенность</text>
+<text x="614" y="362" font-size="15.5" font-weight="normal" fill="#1f2933" text-anchor="start">Строгая проверка ответа</text>
+<text x="614" y="386" font-size="15.5" font-weight="normal" fill="#1f2933" text-anchor="start">кодом, 2 повтора при сбое</text>
+<text x="614" y="410" font-size="15.5" font-weight="normal" fill="#1f2933" text-anchor="start">Только новые отзывы</text>
+<rect x="874" y="200" width="226" height="250" rx="14" fill="#eaf5ec" stroke="#3f8f55" stroke-width="2"/>
+<circle cx="900" cy="228" r="15" fill="#3f8f55"/>
+<text x="900" y="234" font-size="16" font-weight="bold" fill="#fff" text-anchor="middle">4</text>
+<text x="924" y="234" font-size="19" font-weight="bold" fill="#1f2933" text-anchor="start">Сводка</text>
+<text x="892" y="266" font-size="15.5" font-weight="normal" fill="#1f2933" text-anchor="start">Числа и цитаты считает</text>
+<text x="892" y="290" font-size="15.5" font-weight="normal" fill="#1f2933" text-anchor="start">код, а не модель</text>
+<text x="892" y="314" font-size="15.5" font-weight="normal" fill="#1f2933" text-anchor="start">Цитата = кусок исходного</text>
+<text x="892" y="338" font-size="15.5" font-weight="normal" fill="#1f2933" text-anchor="start">отзыва, проверяется</text>
+<text x="892" y="362" font-size="15.5" font-weight="normal" fill="#1f2933" text-anchor="start">Сравнение с прошлой</text>
+<text x="892" y="386" font-size="15.5" font-weight="normal" fill="#1f2933" text-anchor="start">неделей: что выросло,</text>
+<text x="892" y="410" font-size="15.5" font-weight="normal" fill="#1f2933" text-anchor="start">что появилось впервые</text>
+<rect x="1152" y="200" width="226" height="250" rx="14" fill="#eaf5ec" stroke="#3f8f55" stroke-width="2"/>
+<circle cx="1178" cy="228" r="15" fill="#3f8f55"/>
+<text x="1178" y="234" font-size="16" font-weight="bold" fill="#fff" text-anchor="middle">5</text>
+<text x="1202" y="234" font-size="19" font-weight="bold" fill="#1f2933" text-anchor="start">Telegram</text>
+<text x="1170" y="266" font-size="15.5" font-weight="normal" fill="#1f2933" text-anchor="start">Сообщение в чат команды</text>
+<text x="1170" y="290" font-size="15.5" font-weight="normal" fill="#1f2933" text-anchor="start">маркетинга и продукта</text>
+<text x="1170" y="314" font-size="15.5" font-weight="normal" fill="#1f2933" text-anchor="start">Читается за 5 минут:</text>
+<text x="1170" y="338" font-size="15.5" font-weight="normal" fill="#1f2933" text-anchor="start">жалобы, похвала,</text>
+<text x="1170" y="362" font-size="15.5" font-weight="normal" fill="#1f2933" text-anchor="start">что изменилось,</text>
+<text x="1170" y="386" font-size="15.5" font-weight="normal" fill="#1f2933" text-anchor="start">что проверить руками</text>
+<line x1="270" y1="325" x2="312" y2="325" stroke="#2f3b45" stroke-width="2.2" marker-end="url(#a)"/>
+<line x1="548" y1="325" x2="590" y2="325" stroke="#2f3b45" stroke-width="2.2" marker-end="url(#a)"/>
+<line x1="826" y1="325" x2="868" y2="325" stroke="#2f3b45" stroke-width="2.2" marker-end="url(#a)"/>
+<line x1="1104" y1="325" x2="1146" y2="325" stroke="#2f3b45" stroke-width="2.2" marker-end="url(#a)"/>
+<rect x="322" y="510" width="800" height="70" rx="14" fill="#fff" stroke="#6b5fb5" stroke-width="2"/>
+<text x="342" y="540" font-size="19" font-weight="bold" fill="#1f2933" text-anchor="start">SQLite (в бою Postgres)</text>
+<text x="342" y="566" font-size="15.5" font-weight="normal" fill="#5b6770" text-anchor="start">reviews: сырые отзывы   ·   analyses: темы, тональность, флаги, версия промпта и модель   ·   runs: что и когда отправили</text>
+<line x1="431" y1="454" x2="431" y2="506" stroke="#2f3b45" stroke-width="2.2" marker-end="url(#a)"/>
+<line x1="689" y1="454" x2="689" y2="506" stroke="#2f3b45" stroke-width="2.2" marker-end="url(#a)"/>
+<line x1="729" y1="506" x2="729" y2="458" stroke="#2f3b45" stroke-width="2.2" marker-end="url(#a)"/>
+<line x1="987" y1="506" x2="987" y2="458" stroke="#2f3b45" stroke-width="2.2" marker-end="url(#a)"/>
+<rect x="40" y="630" width="640" height="140" rx="14" fill="#fff" stroke="#d98a2b" stroke-width="2"/>
+<text x="60" y="662" font-size="19" font-weight="bold" fill="#1f2933" text-anchor="start">Как мы ловим ошибки ИИ</text>
+<text x="60" y="692" font-size="15.5" font-weight="normal" fill="#1f2933" text-anchor="start">• Ответ модели: только известные темы, все id на месте, иначе повтор</text>
+<text x="60" y="716" font-size="15.5" font-weight="normal" fill="#1f2933" text-anchor="start">• Оценка не совпадает с текстом (сарказм) или низкая уверенность: флаг</text>
+<text x="60" y="740" font-size="15.5" font-weight="normal" fill="#1f2933" text-anchor="start">• Эталон, размеченный вручную: точность считается при каждой правке промпта</text>
+<text x="60" y="764" font-size="15.5" font-weight="normal" fill="#1f2933" text-anchor="start">• Не разобранное из-за сбоя остаётся в очереди и видно в сводке</text>
+<rect x="720" y="630" width="640" height="140" rx="14" fill="#fff" stroke="#c9c2b6" stroke-width="2"/>
+<text x="740" y="662" font-size="19" font-weight="bold" fill="#1f2933" text-anchor="start">Что видит человек</text>
+<text x="740" y="692" font-size="15.5" font-weight="normal" fill="#1f2933" text-anchor="start">• В Telegram: итоги недели и строка «на ручную проверку: N»</text>
+<text x="740" y="716" font-size="15.5" font-weight="normal" fill="#1f2933" text-anchor="start">• В базе: полный список флагов (команда flagged)</text>
+<text x="740" y="740" font-size="15.5" font-weight="normal" fill="#1f2933" text-anchor="start">• В репозитории: промпт, эталон, результат сверки, история запусков</text>
+<text x="740" y="764" font-size="15.5" font-weight="normal" fill="#1f2933" text-anchor="start">• Любая правка промпта проходит проверку качества в CI</text>
+<line x1="709" y1="584" x2="589" y2="626" stroke="#2f3b45" stroke-width="2.2" stroke-dasharray="7 6" marker-end="url(#a)"/>
+<line x1="1265" y1="454" x2="1265" y2="626" stroke="#2f3b45" stroke-width="2.2" stroke-dasharray="7 6" marker-end="url(#a)"/>
+</svg>
