@@ -90,12 +90,12 @@ class Ingest(unittest.TestCase):
 class Digest(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        cls.conn = labelled_db()
+        cls.conn = labelled_db("replay")
         cls.data, cls.text = digest.make(cls.conn, WEEK)
 
     def test_numbers_come_from_data(self):
         self.assertEqual((self.data["total"], self.data["prev_total"]), (28, 20))
-        self.assertEqual(self.data["avg"], 3.0)
+        self.assertEqual(self.data["avg"], 3.1)
 
     def test_every_quote_is_verbatim(self):
         texts = {r["id"]: r["text"] for r in store.analyzed_reviews(self.conn)}
@@ -121,6 +121,38 @@ class Digest(unittest.TestCase):
     def test_empty_week(self):
         text = digest.render(digest.build([], WEEK))
         self.assertIn("нет", text)
+
+    def test_empty_week_still_reports_failures(self):
+        self.assertIn("сбоя модели: 3", digest.render(digest.build([], WEEK, unanalyzed=3)))
+
+    def test_counts_per_theme(self):
+        by = {b["theme"]: b for b in self.data["by_theme"]}
+        self.assertEqual((by["noise"]["total"], by["noise"]["neg"]), (7, 6))
+        self.assertEqual(by["durability"]["neg"], 5)
+        self.assertIn("Отзывов по темам", self.text)
+
+    def test_spam_does_not_move_average(self):
+        rows = [r for r in store.analyzed_reviews(self.conn) if r["id"] != "9474c516"]
+        self.assertEqual(digest.build(rows, WEEK)["avg"], self.data["avg"])
+
+    def test_sku_is_escaped(self):
+        rows = store.analyzed_reviews(self.conn)
+        rows[-1] = dict(rows[-1], sku="A&B<1>", date="2026-10-11", rating=1,
+                        themes=[{"theme": "noise", "sentiment": "neg"}])
+        self.assertNotIn("A&B<1>", digest.render(digest.build(rows, WEEK)))
+
+    def test_unanalyzed_counted_per_week(self):
+        conn = store.connect(":memory:")
+        reviews, _ = sources.load_csv(str(CSV), 2026)
+        store.add_reviews(conn, reviews)
+        self.assertEqual(store.count_unanalyzed(conn, "2026-10-05", "2026-10-12"), 28)
+        self.assertEqual(store.count_unanalyzed(conn, "2026-09-28", "2026-10-05"), 20)
+
+    def test_week_is_not_sent_twice(self):
+        conn = store.connect(":memory:")
+        self.assertFalse(store.week_already_sent(conn, "2026-10-05"))
+        conn.execute("INSERT INTO runs (week_start, text, created_at, sent_at) VALUES ('2026-10-05','x','t','t')")
+        self.assertTrue(store.week_already_sent(conn, "2026-10-05"))
 
 
 class FakeAnthropic(BaseHTTPRequestHandler):

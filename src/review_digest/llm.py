@@ -6,7 +6,7 @@ import urllib.request
 
 from .config import ROOT, env
 
-DEFAULT_MODELS = {"anthropic": "claude-haiku-5-5", "replay": "claude-sonnet-5-5 (recorded)", "mock": "keyword-rules"}
+DEFAULT_MODELS = {"anthropic": "claude-sonnet-5-5", "replay": "claude-sonnet-5-5 (recorded)", "mock": "keyword-rules"}
 RECORDED_DIR = ROOT / "data" / "llm_responses"
 
 

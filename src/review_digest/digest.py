@@ -27,7 +27,7 @@ def clip(text: str, limit: int = QUOTE_MAX) -> str:
     """Cut on a word boundary. The result is always a verbatim prefix of the source, plus an ellipsis."""
     if len(text) <= limit:
         return text
-    return text[:limit].rsplit(" ", 1)[0].rstrip(",.;: ") + "…"
+    return text[:limit].rsplit("\n", 1)[0].rsplit(" ", 1)[0].rstrip(",.;: ") + "…"
 
 
 def split_weeks(rows: list[dict], week_start: date) -> tuple[list[dict], list[dict]]:
@@ -44,6 +44,11 @@ def theme_stats(rows: list[dict]) -> dict[str, dict]:
         for t in r["themes"]:
             stats[t["theme"]][t["sentiment"]].append(r)
     return stats
+
+
+def scored(rows: list[dict]) -> list[dict]:
+    """Rows that describe the product: spam and ads (only the `other` theme) must not move averages."""
+    return [r for r in rows if any(t["theme"] != "other" for t in r["themes"])]
 
 
 def avg(rows: list[dict]) -> float | None:
@@ -109,16 +114,23 @@ def build(rows: list[dict], week_start: date, unanalyzed: int = 0) -> dict:
             changes.append({"kind": "down", "theme": t, "prev": before, "now": now, "skus": ""})
     changes.sort(key=lambda c: -(c["now"] - c["prev"]))
 
+    by_theme = []
+    for t in sorted(THEMES, key=lambda t: -(len(cs[t]["pos"]) + len(cs[t]["neg"]) + len(cs[t]["neu"]))):
+        pos, neg, neu = len(cs[t]["pos"]), len(cs[t]["neg"]), len(cs[t]["neu"])
+        if pos + neg + neu and t != "other":
+            by_theme.append({"theme": t, "total": pos + neg + neu, "pos": pos, "neg": neg, "neu": neu})
+
+    cur_s, prev_s = scored(cur), scored(prev)
     sku_moves = []
-    for sku in sorted({r["sku"] for r in cur}):
-        a, b = [r for r in cur if r["sku"] == sku], [r for r in prev if r["sku"] == sku]
+    for sku in sorted({r["sku"] for r in cur_s}):
+        a, b = [r for r in cur_s if r["sku"] == sku], [r for r in prev_s if r["sku"] == sku]
         if len(a) >= MIN_SIGNAL and b and abs(avg(a) - avg(b)) >= 0.8:
             sku_moves.append({"sku": sku, "now": avg(a), "prev": avg(b), "n": len(a)})
 
     flagged = [r for r in cur if r["flags"]]
     return {"week_start": week_start.isoformat(), "week_end": (week_start + timedelta(days=6)).isoformat(),
-            "total": len(cur), "prev_total": len(prev), "avg": avg(cur), "prev_avg": avg(prev),
-            "complaints": complaints, "praise": praise, "changes": changes, "sku_moves": sku_moves,
+            "total": len(cur), "prev_total": len(prev), "avg": avg(cur_s), "prev_avg": avg(prev_s),
+            "by_theme": by_theme, "complaints": complaints, "praise": praise, "changes": changes, "sku_moves": sku_moves,
             "flagged": len(flagged), "mismatch": sum("rating_mismatch" in r["flags"] for r in flagged),
             "unanalyzed": unanalyzed}
 
@@ -133,23 +145,29 @@ def render(d: dict, limit: int = 4000) -> str:
         text = _render(d, quotes_per_item)
         if len(text) <= limit:
             return text
-    return text[:limit]
+    return text[:limit].rsplit("\n", 1)[0]
 
 
 def _q(q: dict) -> str:
-    return f"«{html.escape(q['text'])}» ({q['sku']}, {q['rating']}★)"
+    return f"«{html.escape(q['text'])}» ({html.escape(q['sku'])}, {q['rating']}★)"
 
 
 def _render(d: dict, qn: int) -> str:
     if not d["total"]:
-        return f"📊 <b>Отзывы Luxhommè: {_d(d['week_start'])} - {_d(d['week_end'])}</b>\n\nНовых отзывов за неделю нет."
+        text = f"📊 <b>Отзывы Luxhommè: {_d(d['week_start'])} - {_d(d['week_end'])}</b>\n\nРазобранных отзывов за неделю нет."
+        if d["unanalyzed"]:
+            text += f"\n⚠️ Не разобрано из-за сбоя модели: {d['unanalyzed']}"
+        return text
     out = [f"📊 <b>Отзывы Luxhommè: {_d(d['week_start'])} - {_d(d['week_end'])}</b>", ""]
     prev = f"; неделей ранее {d['prev_total']}, оценка {d['prev_avg']}" if d["prev_total"] else "; прошлой недели для сравнения нет"
     out.append(f"Отзывов: {d['total']}, средняя оценка {d['avg']}{prev}")
+    out += ["", "📋 <b>Отзывов по темам</b> (один отзыв может быть в нескольких)"]
+    for b in d["by_theme"]:
+        out.append(f"• {label(b['theme'])}: {b['total']} (жалоб {b['neg']}, похвал {b['pos']})")
     if d["complaints"]:
         out += ["", "🔥 <b>На что жалуются</b>"]
         for i, c in enumerate(d["complaints"], 1):
-            out.append(f"{i}. <b>{label(c['theme'])}</b>: {c['count']} (неделей ранее {c['prev']}), {c['skus']}")
+            out.append(f"{i}. <b>{label(c['theme'])}</b>: {c['count']} (неделей ранее {c['prev']}), {html.escape(c['skus'])}")
             out += [f"   {_q(q)}" for q in c["quotes"][:qn]]
     if d["praise"]:
         out += ["", "👍 <b>Что хвалят</b>"]
@@ -159,20 +177,20 @@ def _render(d: dict, qn: int) -> str:
     moves = []
     icons = {"new": "🆕 впервые заметно", "up": "📈 растёт", "down": "📉 стало лучше"}
     for c in d["changes"]:
-        extra = f", {c['skus']}" if c["skus"] else ""
+        extra = f", {html.escape(c['skus'])}" if c["skus"] else ""
         moves.append(f"{icons[c['kind']]}: {label(c['theme'])}, жалоб {c['prev']} → {c['now']}{extra}")
     for m in d["sku_moves"]:
-        moves.append(f"{'⬇️' if m['now'] < m['prev'] else '⬆️'} {m['sku']}: средняя оценка {m['prev']} → {m['now']} ({m['n']} отзывов)")
+        moves.append(f"{'⬇️' if m['now'] < m['prev'] else '⬆️'} {html.escape(m['sku'])}: средняя оценка {m['prev']} → {m['now']} ({m['n']} отзывов)")
     if moves:
         out += ["", "🔄 <b>Что изменилось к прошлой неделе</b>"] + moves
     notes = []
     if d["flagged"]:
         notes.append(f"🧐 На ручную проверку: {d['flagged']}" + (f" (оценка не совпадает с текстом: {d['mismatch']})" if d["mismatch"] else ""))
     if d["unanalyzed"]:
-        notes.append(f"⚠️ Не разобрано из-за сбоя модели: {d['unanalyzed']}, попадут в следующую сводку")
+        notes.append(f"⚠️ Не разобрано из-за сбоя модели: {d['unanalyzed']}")
     return "\n".join(out + ([""] + notes if notes else []))
 
 
 def make(conn, week_start: date) -> tuple[dict, str]:
-    data = build(store.analyzed_reviews(conn), week_start, store.count_unanalyzed(conn))
+    data = build(store.analyzed_reviews(conn), week_start, store.count_unanalyzed(conn, week_start.isoformat(), (week_start + timedelta(days=7)).isoformat()))
     return data, render(data)

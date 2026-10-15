@@ -68,6 +68,12 @@ def analyzed_reviews(conn) -> list[dict]:
     return out
 
 
-def count_unanalyzed(conn) -> int:
+def count_unanalyzed(conn, start: str, end: str) -> int:
+    """Reviews dated in [start, end) that still have no labels."""
     return conn.execute(
-        "SELECT COUNT(*) FROM reviews WHERE id NOT IN (SELECT review_id FROM analyses)").fetchone()[0]
+        "SELECT COUNT(*) FROM reviews WHERE date >= ? AND date < ? AND id NOT IN (SELECT review_id FROM analyses)",
+        (start, end)).fetchone()[0]
+
+
+def week_already_sent(conn, week_start: str) -> bool:
+    return conn.execute("SELECT 1 FROM runs WHERE week_start = ? AND sent_at IS NOT NULL", (week_start,)).fetchone() is not None

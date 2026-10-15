@@ -1,6 +1,7 @@
 """Batch classification with strict validation. Nothing the model says is trusted before it passes here."""
 import json
 import sys
+import time
 
 from . import store
 from .config import SENTIMENTS, THEMES, prompt_text, prompt_version
@@ -75,9 +76,11 @@ def classify(reviews: list[dict], provider: str | None = None) -> dict[str, dict
     for attempt in range(1, RETRIES + 2):
         try:
             return validate_batch(extract_json(complete(system, user, provider)), sent)
-        except (ValueError, KeyError, AttributeError) as e:
+        except (ValueError, KeyError, AttributeError, TypeError, LLMError) as e:
             last = str(e)
             print(f"  batch rejected (attempt {attempt}): {last}", file=sys.stderr)
+            if isinstance(e, LLMError):
+                time.sleep(2 * attempt)  # network or rate limit: back off before the next try
     raise LLMError(f"batch failed validation after {RETRIES + 1} attempts: {last}")
 
 

@@ -35,14 +35,18 @@ def cmd_ingest(args):
 
 
 def cmd_analyze(args):
-    print("analyze:", analyze.run(_db(args), force=args.force, provider=args.provider))
+    res = analyze.run(_db(args), force=args.force, provider=args.provider)
+    print("analyze:", res)
+    return res
 
 
 def cmd_digest(args):
-    data, text = digest.make(_db(args), _week(args))
+    conn = _db(args)
+    data, text = digest.make(conn, _week(args))
     print(re.sub(r"</?[a-z]+>", "", text))
     if args.send:
-        conn = _db(args)
+        if store.week_already_sent(conn, data["week_start"]) and not args.resend:
+            sys.exit(f"week {data['week_start']} was already sent, use --resend to send it again")
         msg_id = telegram.send(text)
         conn.execute("INSERT INTO runs (week_start, text, created_at, sent_at, telegram_message_id)"
                      " VALUES (?,?,?,?,?)", (data["week_start"], text, store.now(), store.now(), msg_id))
@@ -52,7 +56,9 @@ def cmd_digest(args):
 
 def cmd_run(args):
     cmd_ingest(args)
-    cmd_analyze(args)
+    res = cmd_analyze(args)
+    if res["failed"] and not res["analyzed"]:
+        sys.exit("the model returned nothing usable, nothing was sent")
     cmd_digest(args)
 
 
@@ -105,12 +111,14 @@ def main(argv=None) -> int:
     sp = add("digest", cmd_digest, "build the weekly digest")
     sp.add_argument("--week", help="any date inside the week, default: last full week")
     sp.add_argument("--send", action="store_true", help="send to Telegram (needs TELEGRAM_* env)")
+    sp.add_argument("--resend", action="store_true", help="send even if this week was already sent")
     sp = add("run", cmd_run, "ingest + analyze + digest in one go (what the scheduler calls)")
     source_args(sp)
     sp.add_argument("--force", action="store_true")
     sp.add_argument("--provider", choices=["anthropic", "replay", "mock"])
     sp.add_argument("--week")
     sp.add_argument("--send", action="store_true")
+    sp.add_argument("--resend", action="store_true")
     add("flagged", cmd_flagged, "list reviews that need a human look")
     sp = add("eval", cmd_eval, "score the model against data/gold_labels.csv")
     sp.add_argument("--csv", default=str(ROOT / "data" / "reviews.csv"))
