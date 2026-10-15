@@ -1,4 +1,5 @@
 import argparse
+import re
 import sys
 from datetime import date
 
@@ -39,7 +40,7 @@ def cmd_analyze(args):
 
 def cmd_digest(args):
     data, text = digest.make(_db(args), _week(args))
-    print(text)
+    print(re.sub(r"</?[a-z]+>", "", text))
     if args.send:
         conn = _db(args)
         msg_id = telegram.send(text)
